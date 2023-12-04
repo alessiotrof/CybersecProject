@@ -19,6 +19,7 @@ cp /media/sf_condivisa/smb.conf /etc/samba/smb.conf
 mkdir -m 777 /home/public
 smbpasswd -w <PASSWORD_ADMIN>
 systemctl restart smb
+/sbin/smbldap-populate
 apt install -y libnss-ldap
 nano /etc/nsswitch.conf
 #I valori delle prime 3 voci vanno cambiati con "compat ldap"
