@@ -1,0 +1,32 @@
+#	GUIDA
+#CARTELLA D'INSTALLAZIONE IN /media/sf_condivisa/
+#Tested on Debian 12
+su
+apt install -y slapd
+sudo dpkg-reconfigure -plow slapd
+#consigliato cyber.samba.org
+cp /media/sf_condivisa/samba.schema.gz /etc/ldap/schema/samba.schema.gz
+gzip -d /etc/ldap/schema/samba.schema.gz
+/sbin/slapcat -f /media/sf_condivisa/schema_convert.conf -F /media/sf_condivisa/ldif_output -n0 -H ldap:///cn={12}samba,cn=schema,cn=config -l /media/sf_condivisa/cn=samba.ldif
+#eliminare le ultime 7 righe del file cn=samba.ldif e modificare le prime 3 togliendo {12}
+ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /media/sf_condivisa/cn\=samba.ldif
+ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /media/sf_condivisa/samba_indices.ldif
+apt install -y samba smbldap-tools
+/sbin/smbldap-config
+#ldap suffix		dc=cyber,dc=samba,dc=org
+#ldap master bind dn	cn=admin,dc=cyber,dc=samba,dc=org
+cp /media/sf_condivisa/smb.conf /etc/samba/smb.conf
+mkdir -m 777 /home/public
+smbpasswd -w <PASSWORD_ADMIN>
+systemctl restart smb
+apt install -y libnss-ldap
+nano /etc/nsswitch.conf
+#I valori delle prime 3 voci vanno cambiati con "compat ldap"
+
+#Comandi utili
+#Per vedere servizi in ascolto		ss -tunlp
+#file log di samba			/var/log/samba/
+#file config di samba			/etc/samba/smb.conf
+#per interrogare gli utenti samba	pdbedit -L -v
+#per aggiungere utente			/sbin/smbldap-useradd -m -P -a <NAME>
+
