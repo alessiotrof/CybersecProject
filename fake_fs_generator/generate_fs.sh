@@ -9,121 +9,6 @@ max_files=10 # Il numero massimo di file per cartella
 max_folders=5 # Il numero massimo di sottocartelle per cartella
 
 
-#
-# Verifica dei parametri
-#
-
-
-# Verifica se ci sono argomenti passati
-if [ "$#" -ne 0 ]; then
-    echo "Lo script non accetta argomenti. Utilizzo: $0"
-    exit 1
-fi
-
-# Controlla se lo script è stato invocato tramite sudo
-if [ "$EUID" -ne 0 ]; then
-    echo "Lo script deve essere eseguito con i privilegi di amministratore (sudo)."
-    exit 1
-fi
-
-# Verifica se pandoc è installato
-if ! command -v pandoc &> /dev/null; then
-  echo "Errore: Pandoc non è installato. Installalo prima di eseguire lo script."
-  exit 1
-fi
-
-#
-# TUTTO OK! Proseguo!
-#
-
-while [ -z "$user_name" ]; do
-    echo "Inserisci il nome dell'utente da aggiungere all'albero LDAP: "
-    read -r user_name
-
-    if [ -z "$user_name" ]; then
-        echo "La stringa inserita è vuota. Per favore, inserisci una stringa valida."
-    fi
-done
-
-# Controllo se l'utente esiste già in LDAP
-user_search_res=$(ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b "ou=users,dc=cyber,dc=samba,dc=org" "(uid=$user_name)")
-if [ $? -eq 0 ] && [ -z "$user_search_res" ]; then
-  # L'utente non esiste, lo creo
-  echo "OK! L'utente $user_name non è già esistente! Lo creo!"
-  #smbldap-useradd -P -a $user_name -s ""
-  smbldap-useradd -m -P -a $user_name -s ""
-  #user_dir="/home/$user_name"
-else 
-  # L'utente esiste già!
-  echo "ERRORE! L'utente $user_name esiste già!"
-  exit 1
-fi
-
-# Controllo la risposta dell'utente 
-while [[ ! "$answer" =~ ^[YyNn]$ ]]; do
-    echo "Vuoi creare un gruppo per l'utente $user_name? (y/n): "
-    read -r answer
-done
-
-# Ora puoi fare qualcosa con la risposta
-if [[ "$answer" =~ ^[Yy]$ ]]; then
-    echo "OK! Verrà creato un gruppo per l'utente $user_name"
-
-    while [ -z "$group_name" ]; do
-      echo "Inserisci il nome del gruppo: "
-      read -r group_name
-
-      if [ -z "$group_name" ]; then
-        echo "La stringa inserita è vuota. Per favore, inserisci una stringa valida."
-      fi
-    done
-
-    group_search_res=$(ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b "ou=groups,dc=cyber,dc=samba,dc=org" "(cn=$group_name)")
-    
-    # Controllo se il gruppo esiste già
-    if [ $? -eq 0 ] && [ -z "$group_search_res" ]; then
-      # Il gruppo non esiste, lo creo
-      echo "OK! Il gruppo $group_name non è già esistente! Lo creo!"
-      smbldap-groupadd -a $group_name
-
-      echo "OK! Metto l'utente $user_name nel gruppo $group_name"
-      smbldap-groupmod -m $user_name $group_name
-
-      group_dir="/home/$group_name"
-      if [ -d "$group_dir" ]; then
-        echo "La cartella $group_dir esiste già. Non la ricreo!"
-        populate_group_dir=false
-      else
-        echo "La cartella $group_dir non esiste. Verrà creata e riempita!"
-        populate_group_dir=true
-      fi
-
-    else
-      # Il gruppo esiste già!
-      echo "ERRORE! Il gruppo $group_name esiste già! L'utente $user_name verrà ora inserito nel gruppo $group_name"
-      smbldap-groupmod -m $user_name $group_name
-
-      group_dir="/home/$group_name"
-      if [ -d "$group_dir" ]; then
-        echo "La cartella $group_dir esiste già. Non la ricreo!"
-        populate_group_dir=false
-      else
-        echo "La cartella $group_dir non esiste. Verrà creata e riempita!"
-        populate_group_dir=true
-      fi
-
-    fi
-
-else
-  echo "OK! Non verrà creato un gruppo per l'utente $user_name"
-  populate_group_dir=false
-fi
-
-
-
-# Legge i titoli e i paragrafi da dei file esterni
-readarray -t TITLES < titles.txt
-readarray -t PARAGRAPHS < paragraphs.txt
 
 # Funzione che genera un nome casuale di una cartella
 gen_folder_name() {
@@ -270,36 +155,197 @@ gen_file_hierarchy() {
 }
 
 
+#
+# Verifica dei parametri
+#
 
-# Riempimento della cartella dell'utente
-echo "Riempimento della cartella dell'utente $user_name... Attendere..."
-#mkdir "$user_dir"
-
-user_dir="/home/$user_name/Desktop"
-# Creazione della gerarchia di file verosimile
-gen_file_hierarchy "$user_dir" $max_depth $max_files $max_folders 1
-
-# Elimina i file .txt generati
-find "$user_dir" -type f -name "*.txt" -delete
-#chown $user_name $user_dir
-
-
-echo "Fatto!"
-
-if $populate_group_dir; then
-  # Creazione della cartella del gruppo
-  echo "Creazione e riempimento della cartella del gruppo $group_name... Attendere..."
-  mkdir "$group_dir"
-
-  # Creazione della gerarchia di file verosimile
-  gen_file_hierarchy "$group_dir" $max_depth $max_files $max_folders 1
-
-  # Elimina i file .txt generati
-  find "$group_dir" -type f -name "*.txt" -delete
-
-  chown $user_name:$group_name $group_dir
-
-  echo "Fatto!"
+# Verifica se ci sono argomenti passati
+if [ "$#" -ne 0 ]; then
+    echo "Lo script non accetta argomenti. Utilizzo: $0"
+    exit 1
 fi
 
+# Controlla se lo script è stato invocato tramite sudo
+if [ "$EUID" -ne 0 ]; then
+    echo "Lo script deve essere eseguito con i privilegi di amministratore (sudo)."
+    exit 1
+fi
+
+# Verifica se pandoc è installato
+if ! command -v pandoc &> /dev/null; then
+  echo "Errore: Pandoc non è installato. Installalo prima di eseguire lo script."
+  exit 1
+fi
+
+
+#
+# TUTTO OK! Proseguo!
+#
+
+
+# Ciclo while che continua fino a quando l'utente fornisce un numero valido
+while true; do
+    # Chiedi all'utente di inserire un numero
+    read -p "Inserisci il numero degli utenti da aggiungere all'albero LDAP: " user_number
+
+    # Controlla se l'input è un numero intero
+    if [[ "$user_number" =~ ^[0-9]+$ ]]; then
+        NUMBER="$user_number"
+        break  # Esce dal ciclo se l'input è un numero valido
+    else
+        echo "ERRORE: Inserisci un numero valido."
+    fi
+done
+
+# Legge i titoli e i paragrafi da dei file esterni
+readarray -t TITLES < titles.txt
+readarray -t PARAGRAPHS < paragraphs.txt
+
+#
+#  INIZIO CICLO QUI - da far iterare fino a NUMBER
+#
+
+# Itera attraverso il numero di utenti specificato
+for ((user_index=1; user_index<=NUMBER; user_index++)); do
+
+  user_name=""
+
+  while [ -z "$user_name" ]; do
+    read -p "Inserisci il nome dell'utente numero $user_index da aggiungere all'albero LDAP: " user_name
+
+    if [ -z "$user_name" ]; then
+        echo "La stringa inserita è vuota. Inserisci una stringa valida."
+    fi
+  done
+
+  # Controllo se l'utente esiste già in LDAP
+  user_search_res=$(ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b "ou=users,dc=cyber,dc=samba,dc=org" "(uid=$user_name)")
+  if [ $? -eq 0 ] && [ -z "$user_search_res" ]; then
+    # L'utente non esiste, lo creo
+    echo "OK! L'utente $user_name non è già esistente! Lo creo!"
+    #smbldap-useradd -P -a $user_name -s ""
+    smbldap-useradd -m -P -a $user_name -s ""
+    #user_dir="/home/$user_name"
+  else 
+    # L'utente esiste già!
+    echo "ERRORE! L'utente $user_name esiste già!"
+    exit 1
+  fi
+
+  answer=""
+
+  # Controllo la risposta dell'utente 
+  while [[ ! "$answer" =~ ^[YyNn]$ ]]; do
+    read -p "Vuoi creare un gruppo per l'utente $user_name? (y/n): " answer
+  done
+
+  # Ora puoi fare qualcosa con la risposta
+  if [[ "$answer" =~ ^[Yy]$ ]]; then
+      echo "OK! Verrà creato un gruppo per l'utente $user_name"
+
+      group_name=""
+      while [ -z "$group_name" ]; do
+        read -p "Inserisci il nome del gruppo: " group_name
+        
+        if [ -z "$group_name" ]; then
+          echo "La stringa inserita è vuota. Inserisci una stringa valida."
+        fi
+      done
+
+      group_search_res=$(ldapsearch -Q -LLL -Y EXTERNAL -H ldapi:/// -b "ou=groups,dc=cyber,dc=samba,dc=org" "(cn=$group_name)")
+      
+      # Controllo se il gruppo esiste già
+      if [ $? -eq 0 ] && [ -z "$group_search_res" ]; then
+        # Il gruppo non esiste, lo creo
+        echo "OK! Il gruppo $group_name non è già esistente! Lo creo!"
+        smbldap-groupadd -a $group_name
+
+        echo "OK! Metto l'utente $user_name nel gruppo $group_name"
+        smbldap-groupmod -m $user_name $group_name
+
+        group_dir="/home/$group_name"
+        if [ -d "$group_dir" ]; then
+          echo "La cartella $group_dir esiste già. Non la ricreo!"
+          populate_group_dir=false
+        else
+          echo "La cartella $group_dir non esiste. Verrà creata e riempita!"
+          populate_group_dir=true
+        fi
+
+      else
+        # Il gruppo esiste già!
+        echo "ERRORE! Il gruppo $group_name esiste già! L'utente $user_name verrà ora inserito nel gruppo $group_name"
+        smbldap-groupmod -m $user_name $group_name
+
+        group_dir="/home/$group_name"
+        if [ -d "$group_dir" ]; then
+          echo "La cartella $group_dir esiste già. Non la ricreo!"
+          populate_group_dir=false
+        else
+          echo "La cartella $group_dir non esiste. Verrà creata e riempita!"
+          populate_group_dir=true
+        fi
+
+      fi
+
+  else
+    echo "OK! Non verrà creato un gruppo per l'utente $user_name"
+    populate_group_dir=false
+  fi
+
+
+  # Controllo se la cartella Desktop esiste nella home dell'utente
+  user_dir="/home/$user_name/Desktop"
+  if [ -d "$user_dir" ]; then
+    echo "La cartella 'Desktop' dentro alla home dell'utente esiste. Popolo quella!"
+  else
+    echo "La cartella 'Desktop' dentro alla home dell'utente non esiste. La creo!"
+    mkdir $user_dir
+  fi
+
+
+  # Riempimento della cartella dell'utente
+  echo "Riempimento della cartella dell'utente $user_name... Attendere..."
+  #mkdir "$user_dir"
+
+  # Creazione della gerarchia di file verosimile
+  gen_file_hierarchy "$user_dir" $max_depth $max_files $max_folders 1
+
+  # Elimina i file .txt generati
+  find "$user_dir" -type f -name "*.txt" -delete
+  #chown $user_name $user_dir
+
+  echo "Fatto!"
+
+  if $populate_group_dir; then
+    # Creazione della cartella del gruppo
+    echo "Creazione e riempimento della cartella del gruppo $group_name... Attendere..."
+    mkdir "$group_dir"
+
+    # Creazione della gerarchia di file verosimile
+    gen_file_hierarchy "$group_dir" $max_depth $max_files $max_folders 1
+
+    # Elimina i file .txt generati
+    find "$group_dir" -type f -name "*.txt" -delete
+
+    # Per settare i permessi del gruppo
+    chown root:$group_name /home/$group_name
+    chmod g+rwx /home/$group_name
+    echo "" >> /etc/samba/smb.conf
+    echo "[$group_name]" >> /etc/samba/smb.conf
+    echo "   path = /home/$group_name" >> /etc/samba/smb.conf
+    echo "   read only = no" >> /etc/samba/smb.conf
+    echo "   browseable = yes" >> /etc/samba/smb.conf
+    echo "   valid users = @$group_name" >> /etc/samba/smb.conf
+    systemctl restart smb
+
+    echo "Fatto!"
+    
+  fi
+
+done
+
+#
+# FINE CICLO QUI
+#
 
