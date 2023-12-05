@@ -31,3 +31,16 @@ nano /etc/nsswitch.conf
 #per interrogare gli utenti samba	pdbedit -L -v
 #per aggiungere utente			/sbin/smbldap-useradd -m -P -a <NAME>
 
+#Procedura per aggiungere cartelle di gruppo
+mkdir /home/<NOME_GRUPPO>
+chown root:<NOME_GRUPPO> /home/<NOME_GRUPPO>
+chmod g+rwx /home/<NOME_GRUPPO>
+echo "" >> /etc/samba/smb.conf
+echo "[<NOME_GRUPPO>]" >> /etc/samba/smb.conf
+echo "   path = /home/<NOME_GRUPPO>" >> /etc/samba/smb.conf
+echo "   read only = no" >> /etc/samba/smb.conf
+echo "   browseable = yes" >> /etc/samba/smb.conf
+echo "   valid users = @<NOME_GRUPPO>" >> /etc/samba/smb.conf
+systemctl restart smb
+
+
