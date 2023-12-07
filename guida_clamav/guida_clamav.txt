@@ -1,0 +1,8 @@
+++ GUIDA INSTALLAZIONE CLAMAV ++
+
+1) Installare clamav dal sito ufficiale tramite pacchetto .deb, installare anche clamd e freshclam nel caso non siano installati con quello
+2) Spostare clamd.conf in /etc/clamav/clamd.conf
+3) Spostare lo script bash "detected.sh" in /etc/clamav/detected.sh e dargli i permessi di esecuzione tramite "chmod +x" e infine fare "sudo systemctl restart clamav-daemon.service"
+4) Spostare il file "clamav-onacc.service" in /etc/systemd/system/clamav-onacc.service, fare poi "sudo systemctl enable clamav-onacc.service" e infine "sudo systemctl start clamav-onacc.service"
+5) Ora dovrebbe andare tutto, verificare i log in /var/log/clamav/clamd.log e se si proverà ad accedere a dei file infetti essi verranno spostati in "/home/quarantine/" senza permettere all'utente di avviarli
+

@@ -1,0 +1,19 @@
+# clamonacc systemd service file primarily the work of ChadDevOps & Aaron Brighton
+# See: https://medium.com/@aaronbrighton/installation-configuration-of-clamav-antivirus-on-ubuntu-18-04-a6416bab3b41#a340
+
+[Unit]
+Description=ClamAV On-Access Scanner
+Documentation=man:clamonacc(8) man:clamd.conf(5) https://www.clamav.net/documents
+Requires=clamav-daemon.service
+After=clamav-daemon.service syslog.target network.target
+
+[Service]
+Type=simple
+User=root
+ExecStart=/usr/sbin/clamonacc -F --config-file=/etc/clamav/clamd.conf --log=/var/log/clamav/clamonacc.log --move=/home/quarantine
+Restart=on-failure
+RestartSec=120s
+
+[Install]
+WantedBy=multi-user.target
+
