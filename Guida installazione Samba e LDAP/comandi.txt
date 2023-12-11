@@ -61,5 +61,5 @@ service smbd restart
 #Comandi per container quando si riavvia
 #COMANDO DOCKER	------>	docker exec -it CybersecProject bash
 service slapd start
-service smbd start
 service nslcd start
+service smbd start
