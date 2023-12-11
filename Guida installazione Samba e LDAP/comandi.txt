@@ -1,35 +1,50 @@
-#	GUIDA
-#CARTELLA D'INSTALLAZIONE IN /media/sf_condivisa/
-#Tested on Debian 12
-su
-apt install -y slapd
-sudo dpkg-reconfigure -plow slapd
+#	GUIDA FINALE
+
+#comandi docker
+docker run --name=CybersecProject -p 389:389 -it debian:stable-slim /bin/bash
+docker export --output="<PATH>/image.tar" CybersecProject
+docker import <PATH>/image.tar
+
+#CARTELLA D'INSTALLAZIONE IN /home/guida/ !!!
+#Tested on Debian Docker
+apt-get update
+printf '#!/bin/sh\nexit 0' > /usr/sbin/policy-rc.d
+apt-get install -y nano slapd ldap-utils
+dpkg-reconfigure -plow slapd
 #consigliato cyber.samba.org
-cp /media/sf_condivisa/samba.schema.gz /etc/ldap/schema/samba.schema.gz
+cp /home/guida/samba.schema.gz /etc/ldap/schema/samba.schema.gz
 gzip -d /etc/ldap/schema/samba.schema.gz
-/sbin/slapcat -f /media/sf_condivisa/schema_convert.conf -F /media/sf_condivisa/ldif_output -n0 -H ldap:///cn={12}samba,cn=schema,cn=config -l /media/sf_condivisa/cn=samba.ldif
+slapcat -f /home/guida/schema_convert.conf -F /home/guida/ldif_output -n0 -H ldap:///cn={12}samba,cn=schema,cn=config -l /home/guida/cn=samba.ldif
+nano /home/guida/cn=samba.ldif
 #eliminare le ultime 7 righe del file cn=samba.ldif e modificare le prime 3 togliendo {12}
-ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /media/sf_condivisa/cn\=samba.ldif
-ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /media/sf_condivisa/samba_indices.ldif
-apt install -y samba smbldap-tools
-/sbin/smbldap-config
+ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /home/guida/cn\=samba.ldif
+ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /home/guida/samba_indices.ldif
+apt-get install -y samba smbldap-tools smbclient
+smbldap-config
 #ldap suffix		dc=cyber,dc=samba,dc=org
 #ldap master bind dn	cn=admin,dc=cyber,dc=samba,dc=org
-cp /media/sf_condivisa/smb.conf /etc/samba/smb.conf
+cp /home/guida/smb.conf /etc/samba/smb.conf
 mkdir -m 777 /home/public
 smbpasswd -w <PASSWORD_ADMIN>
-systemctl restart smb
-/sbin/smbldap-populate
-apt install -y libnss-ldap
+service smbd restart
+killall -15 slapd
+service slapd start
+smbldap-populate
+apt-get install -y libnss-ldapd
+#LDAP server URI: ldapi:///
+#LDAP server search base: dc=cyber,dc=samba,dc=org
 nano /etc/nsswitch.conf
-#I valori delle prime 3 voci vanno cambiati con "compat ldap"
+#I valori delle prime 3 voci vanno cambiati aggiungendo "ldap" in modo da farle diventare "XXXX ldap"
 
 #Comandi utili
-#Per vedere servizi in ascolto		ss -tunlp
+#Per vedere servizi in ascolto		ss -tunlp (apt-get install iproute2)
 #file log di samba			/var/log/samba/
-#file config di samba			/etc/samba/smb.conf
 #per interrogare gli utenti samba	pdbedit -L -v
-#per aggiungere utente			/sbin/smbldap-useradd -m -P -a <NAME>
+#per terminare slapd			killall -15 slapd
+#per aggiungere utente			1) smbldap-useradd -m -P -a <NAME>
+					2) service smbd restart
+#per entrare nella cartella privata	smbclient //127.0.0.1/homes -U <NOME_UTENTE>
+#albero processi			ps aux
 
 #Procedura per aggiungere cartelle di gruppo
 mkdir /home/<NOME_GRUPPO>
@@ -41,6 +56,10 @@ echo "   path = /home/<NOME_GRUPPO>" >> /etc/samba/smb.conf
 echo "   read only = no" >> /etc/samba/smb.conf
 echo "   browseable = yes" >> /etc/samba/smb.conf
 echo "   valid users = @<NOME_GRUPPO>" >> /etc/samba/smb.conf
-systemctl restart smb
+service smbd restart
 
-
+#Comandi per container quando si riavvia
+#COMANDO DOCKER	------>	docker exec -it CybersecProject bash
+service slapd start
+service smbd start
+service nslcd start
