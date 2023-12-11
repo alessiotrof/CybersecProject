@@ -20,10 +20,10 @@ nano /home/guida/cn=samba.ldif
 ldapadd -Q -Y EXTERNAL -H ldapi:/// -f /home/guida/cn\=samba.ldif
 ldapmodify -Q -Y EXTERNAL -H ldapi:/// -f /home/guida/samba_indices.ldif
 apt-get install -y samba smbldap-tools smbclient
+cp /home/guida/smb.conf /etc/samba/smb.conf
 smbldap-config
 #ldap suffix		dc=cyber,dc=samba,dc=org
 #ldap master bind dn	cn=admin,dc=cyber,dc=samba,dc=org
-cp /home/guida/smb.conf /etc/samba/smb.conf
 mkdir -m 777 /home/public
 smbpasswd -w <PASSWORD_ADMIN>
 service smbd restart
