@@ -130,20 +130,25 @@ gen_file_hierarchy() {
 
 # Verifica se ci sono argomenti passati
 if [ "$#" -ne 0 ]; then
-    echo "Lo script non accetta argomenti. Utilizzo: $0"
-    exit 1
+  echo "Lo script non accetta argomenti. Utilizzo: $0"
+  exit 1
 fi
 
 # Controlla se lo script è stato invocato tramite sudo
 if [ "$EUID" -ne 0 ]; then
-    echo "Lo script deve essere eseguito con i privilegi di amministratore (sudo)."
-    exit 1
+  echo "Lo script deve essere eseguito con i privilegi di amministratore (sudo)."
+  exit 1
 fi
 
 # Verifica se pandoc è installato
 if ! command -v pandoc &> /dev/null; then
   echo "Errore: Pandoc non è installato. Installalo prima di eseguire lo script."
   exit 1
+fi
+
+# Controllo che sia installato ClamAV
+if ! command -v clamscan &> /dev/null; then
+  echo "ClamAV non è installato. Installalo prima di eseguire lo script."
 fi
 
 
@@ -288,7 +293,9 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
 
   # Elimina i file .txt generati
   find "$user_dir" -type f -name "*.txt" -delete
-  #chown $user_name $user_dir
+
+  echo "Aggiungo la cartella $user_dir alle cartelle da scansionare con ClamAV"
+  echo "OnAccessIncludePath $user_dir" >> /etc/clamav/clamd.conf
 
   echo "Fatto!"
 
@@ -302,6 +309,9 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
 
     # Elimina i file .txt generati
     find "$group_dir" -type f -name "*.txt" -delete
+
+    echo "Aggiungo la cartella $group_dir alle cartelle da scansionare con ClamAV"
+    echo "OnAccessIncludePath $group_dir" >> /etc/clamav/clamd.conf
 
     #
     # Per settare i permessi del gruppo
@@ -319,6 +329,12 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
     echo "Fatto!"
     
   fi
+
+  echo "Riavvio il demone di ClamAV..."
+  systemctl restart clamav-daemon.service
+
+  echo "Fine!"
+
 
 done
 
