@@ -58,6 +58,11 @@ echo "   browseable = yes" >> /etc/samba/smb.conf
 echo "   valid users = @<NOME_GRUPPO>" >> /etc/samba/smb.conf
 service smbd restart
 
+#Per importare il container (dopo aver unzippato l'archivio)
+docker import <PATH>/image.tar
+#prendere il SHA256 in output
+docker run --name=CybersecProject -p 389:389 -it <SHA256_PUNTO_PRIMA> /bin/bash
+
 #Comandi per container quando si riavvia
 #COMANDO DOCKER	------>	docker exec -it CybersecProject bash
 service slapd start
