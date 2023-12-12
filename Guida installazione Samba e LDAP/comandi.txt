@@ -1,7 +1,6 @@
 #	GUIDA FINALE
 
 #comandi docker
-docker run --name=CybersecProject -p 389:389 -it debian:stable-slim /bin/bash
 docker export --output="<PATH>/image.tar" CybersecProject
 docker import <PATH>/image.tar
 
@@ -68,3 +67,8 @@ docker run --name=CybersecProject -p 389:389 -it <SHA256_PUNTO_PRIMA> /bin/bash
 service slapd start
 service nslcd start
 service smbd start
+
+#Per avviare il file di generazione
+apt install -y texlive-xetex
+apt install pandoc
+<PATH>/generate_fs.sh
