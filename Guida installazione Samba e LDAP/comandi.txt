@@ -1,6 +1,8 @@
 #	GUIDA FINALE
 
 #comandi docker
+docker run --name=CybersecProject -p 389:389 -it debian:stable-slim /bin/bash
+#-p 389:389 per collegarsi al server ldap dall'esterno
 docker export --output="<PATH>/image.tar" CybersecProject
 docker import <PATH>/image.tar
 
