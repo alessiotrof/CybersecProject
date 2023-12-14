@@ -3,12 +3,12 @@
 # Parametri dello script
 user_dir="home/default_user_dir" # La cartella radice di default da cui partire
 group_dir="home/default_group_dir" # La cartella radice di default del gruppo
-populate_group_dir=false # flag che mi dice se devo popolare la directory del gruppo o meno
+populate_group_dir=false # Flag che indica se popolare o meno la directory del gruppo
 max_depth=5 # La profondità massima della gerarchia
 max_files=10 # Il numero massimo di file per cartella
 max_folders=5 # Il numero massimo di sottocartelle per cartella
 
-# Nomi dei file che usa lo script
+# Nomi dei file necessari per lo script
 file_filenames="file_names.txt"
 file_foldernames="folder_names.txt"
 file_paragraphs="paragraphs.txt"
@@ -46,7 +46,7 @@ gen_file_name() {
   echo "${prefixes[$prefix_index]}${suffixes[$suffix_index]}"
 }
 
-# Funzione che genera il contenuto casuale di un file .md con più titoli
+# Funzione che genera il contenuto di un file .md con più titoli e paragrafi
 gen_file_content() {
 
   # Genera un numero casuale tra 3 e 5 per il numero di titoli da includere
@@ -81,7 +81,7 @@ gen_file_content() {
 }
 
 
-# Funzione che genera una gerarchia di file verosimile
+# Funzione che genera la gerarchia di file
 gen_file_hierarchy() {
 
   local root_dir=$1 # La cartella radice da cui partire
@@ -99,7 +99,7 @@ gen_file_hierarchy() {
       local file_content=$(gen_file_content) # Il contenuto del file da creare
       echo -e "$file_content" > "$root_dir/$file_name" # Creazione del file
 
-      # Sceglie casualmente se convertire il file appena creato in .pdf, .docx oppure odt
+      # Sceglie casualmente se convertire il file appena creato in .pdf, .docx oppure .odt
       convert_choice=$((RANDOM % 3))
       case $convert_choice in
         0)
@@ -116,7 +116,7 @@ gen_file_hierarchy() {
 
     for ((i=0; i<$num_folders; i++)); do
       local folder_name=$(gen_folder_name) # Il nome della sottocartella da creare
-      mkdir "$root_dir/$folder_name" # Creazione della sottocartella
+      sudo mkdir "$root_dir/$folder_name" # Creazione della sottocartella
       gen_file_hierarchy "$root_dir/$folder_name" $max_depth $max_files $max_folders $((depth + 1)) # Chiamata ricorsiva per creare la gerarchia nella sottocartella
     done
 
@@ -142,13 +142,13 @@ fi
 
 # Verifica se pandoc è installato
 if ! command -v pandoc &> /dev/null; then
-  echo "Errore: Pandoc non è installato. Installalo prima di eseguire lo script."
+  echo "ERRORE: Pandoc non è installato. Installalo prima di eseguire lo script."
   exit 1
 fi
 
 # Controllo che sia installato ClamAV
 if ! command -v clamscan &> /dev/null; then
-  echo "ClamAV non è installato. Installalo prima di eseguire lo script."
+  echo "ERRORE: ClamAV non è installato. Installalo prima di eseguire lo script."
 fi
 
 
@@ -205,7 +205,7 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
   if [ $? -eq 0 ] && [ -z "$user_search_res" ]; then
     # L'utente non esiste, lo creo
     echo "OK! L'utente $user_name non è già esistente! Lo creo!"
-    smbldap-useradd -m -P -a $user_name -s ""
+    sudo smbldap-useradd -m -P -a $user_name -s ""
   else 
     # L'utente esiste già!
     echo "ERRORE! L'utente $user_name esiste già!"
@@ -238,10 +238,10 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
       if [ $? -eq 0 ] && [ -z "$group_search_res" ]; then
         # Il gruppo non esiste, lo creo
         echo "OK! Il gruppo $group_name non è già esistente! Lo creo!"
-        smbldap-groupadd -a $group_name
+        sudo smbldap-groupadd -a $group_name
 
         echo "OK! Metto l'utente $user_name nel gruppo $group_name"
-        smbldap-groupmod -m $user_name $group_name
+        sudo smbldap-groupmod -m $user_name $group_name
 
         group_dir="/home/$group_name"
         if [ -d "$group_dir" ]; then
@@ -255,7 +255,7 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
       else
         # Il gruppo esiste già!
         echo "Il gruppo $group_name esiste già! L'utente $user_name verrà ora inserito nel gruppo $group_name"
-        smbldap-groupmod -m $user_name $group_name
+        sudo smbldap-groupmod -m $user_name $group_name
 
         group_dir="/home/$group_name"
         if [ -d "$group_dir" ]; then
@@ -280,13 +280,12 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
     echo "La cartella 'Desktop' dentro alla home dell'utente esiste. Popolo quella!"
   else
     echo "La cartella 'Desktop' dentro alla home dell'utente non esiste. La creo!"
-    mkdir $user_dir
+    sudo mkdir $user_dir
   fi
 
 
   # Riempimento della cartella dell'utente
   echo "Riempimento della cartella dell'utente $user_name... Attendere..."
-  #mkdir "$user_dir"
 
   # Creazione della gerarchia di file verosimile
   gen_file_hierarchy "$user_dir" $max_depth $max_files $max_folders 1
@@ -302,7 +301,7 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
   if $populate_group_dir; then
     # Creazione della cartella del gruppo
     echo "Creazione e riempimento della cartella del gruppo $group_name... Attendere..."
-    mkdir "$group_dir"
+    sudo mkdir "$group_dir"
 
     # Creazione della gerarchia di file verosimile
     gen_file_hierarchy "$group_dir" $max_depth $max_files $max_folders 1
@@ -316,26 +315,24 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
     #
     # Per settare i permessi del gruppo
     #
-    chown root:$group_name /home/$group_name
-    chmod g+rwx /home/$group_name
+    sudo chown root:$group_name /home/$group_name
+    sudo chmod g+rwx /home/$group_name
     echo "" >> /etc/samba/smb.conf
     echo "[$group_name]" >> /etc/samba/smb.conf
     echo "   path = /home/$group_name" >> /etc/samba/smb.conf
     echo "   read only = no" >> /etc/samba/smb.conf
     echo "   browseable = yes" >> /etc/samba/smb.conf
     echo "   valid users = @$group_name" >> /etc/samba/smb.conf
-    systemctl restart smb
+    sudo systemctl restart smbd nmbd slapd
 
     echo "Fatto!"
     
   fi
 
-  echo "Riavvio il demone di ClamAV..."
-  systemctl restart clamav-daemon.service
+  echo "Riavvio del demone di ClamAV in corso... Attendere..."
+  sudo systemctl restart clamav-daemon.service
 
   echo "Fine!"
 
 
 done
-
-
