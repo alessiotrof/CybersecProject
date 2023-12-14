@@ -318,5 +318,3 @@ for ((user_index=1; user_index<=NUMBER; user_index++)); do
   echo "Fine!"
 
 done
-
-
