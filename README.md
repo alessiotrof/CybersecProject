@@ -1,7 +1,7 @@
 # Deception Component Generator (README before you proceed!!!)
 Cybersecurity project about SAMBA file server
 
-## Link to resourxes
+## Link to resources
 - https://liveunibo-my.sharepoint.com/:f:/g/personal/leonardo_lembo_studio_unibo_it/ErookCjTtW1HnosbtrrKfe0Bz6jtFwA78xGBVwuXfbJY-Q?e=5b6Okm
 
 # Usage
