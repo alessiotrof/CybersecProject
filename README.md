@@ -9,6 +9,7 @@ Cybersecurity project about SAMBA file server
 - Double click on the .ova file
 - Adjust the VM settings depending on your computer
 - Start the VM
+- Account Passwd: ste123
 
 ## For Docker (you MUST have Docker installed on your PC! You can also use Docker Desktop.)
 - Open Docker Desktop and start the Docker Engine
