@@ -1,7 +1,7 @@
 # SAMBAProject
 Cybersecurity project about SAMBA file server
 
-## LINK Risorse
+## Link to resourxes
 - https://liveunibo-my.sharepoint.com/:f:/g/personal/leonardo_lembo_studio_unibo_it/ErookCjTtW1HnosbtrrKfe0Bz6jtFwA78xGBVwuXfbJY-Q?e=5b6Okm
 
 ## Usage
