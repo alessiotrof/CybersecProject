@@ -11,6 +11,8 @@ Cybersecurity project about SAMBA file server
 - Start the VM
 - Account Passwd: ste123
 
+# ATTENTION! The Vm may be slow because of ClamaV!
+
 ## For Docker (you MUST have Docker installed on your PC! You can also use Docker Desktop.)
 - Open Docker Desktop and start the Docker Engine
 - Open the CLI
