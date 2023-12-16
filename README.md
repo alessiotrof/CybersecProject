@@ -11,11 +11,11 @@ Cybersecurity project about SAMBA file server
 - Start the VM
 - Account Passwd: ste123
 
-# ATTENTION! The VM may be slow because of ClamaV!
+# Warning: the VM may be slow because of ClamAV!
 
 ## For Docker (you MUST have Docker installed on your PC! You can also use Docker Desktop.)
 - Open Docker Desktop and start the Docker Engine
 - Open the CLI
 - Execute "docker import /path/to/image.tar"
 - Execute "docker images" and copy the latest image's ID
-- Execute "docke run -it ID /bin/bash"
+- Execute "docker run -it ID /bin/bash"
