@@ -1,4 +1,4 @@
-# SAMBAProject
+# Deception Component Generator (README before you proceed!!!)
 Cybersecurity project about SAMBA file server
 
 ## Link to resourxes
