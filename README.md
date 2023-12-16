@@ -1,6 +1,9 @@
 # SAMBAProject
 Cybersecurity project about SAMBA file server
 
+## LINK Risorse
+- https://liveunibo-my.sharepoint.com/:f:/g/personal/leonardo_lembo_studio_unibo_it/ErookCjTtW1HnosbtrrKfe0Bz6jtFwA78xGBVwuXfbJY-Q?e=5b6Okm
+
 ## Usage
 - Download the rar file from [link]
 - Extract the .rar file. You'll find the VirtualBox .ova file and the Docker image .tar file.
@@ -9,7 +12,7 @@ Cybersecurity project about SAMBA file server
 - Double click on the .ova file
 - Adjust the VM settings depending on your computer
 - Start the VM
-- Account Passwd: ste123
+- Account Passwd: secret
 
 # Warning: the VM may be slow because of ClamAV!
 
