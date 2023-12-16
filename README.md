@@ -22,3 +22,4 @@ Cybersecurity project about SAMBA file server
 - Execute "docker import /path/to/image.tar"
 - Execute "docker images" and copy the latest image's ID
 - Execute "docker run -it ID /bin/bash"
+- Restart slapd, smbd and nslcd by executing the "service <srv> start" command. Be careful to change <srv> with the service that you have to restart.  
