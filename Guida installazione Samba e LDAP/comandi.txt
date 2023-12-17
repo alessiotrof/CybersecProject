@@ -1,7 +1,7 @@
 #	GUIDA FINALE
 
 #comandi docker
-docker run --name=CybersecProject -p 389:389 -it debian:stable-slim /bin/bash
+docker run  --hostname cyber --name=CybersecProject -it debian:stable-slim /bin/bash
 #-p 389:389 per collegarsi al server ldap dall'esterno
 docker export --output="<PATH>/image.tar" CybersecProject
 docker import <PATH>/image.tar
@@ -62,7 +62,7 @@ service smbd restart
 #Per importare il container (dopo aver unzippato l'archivio)
 docker import <PATH>/image.tar
 #prendere il SHA256 in output
-docker run --name=CybersecProject -p 389:389 -it <SHA256_PUNTO_PRIMA> /bin/bash
+docker run --hostname cyber --name=CybersecProject -p 389:389 -it <SHA256_PUNTO_PRIMA> /bin/bash
 
 #Comandi per container quando si riavvia
 #COMANDO DOCKER	------>	docker exec -it CybersecProject bash
