@@ -12,6 +12,7 @@ Cybersecurity project about SAMBA file server
 - Adjust the VM settings depending on your computer
 - Start the VM
 - Account Passwd: secret
+- Path Scripts generazione utenti/gruppi: /home/admin/ScriptCyb/*
 
 ## Warning: the VM may be slow because of ClamAV!
 
