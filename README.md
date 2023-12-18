@@ -20,6 +20,7 @@ Cybersecurity project about SAMBA file server
 - Open Docker Desktop and start the Docker Engine
 - Open the CLI
 - Execute "docker import /path/to/image.tar"
-- Execute "docker images" and copy the latest image's ID
-- Execute "docker run -it ID /bin/bash"
-- Restart slapd, smbd and nslcd by executing the "service *srv* start" command. Be careful to change *srv* with the service that you have to restart.  
+- Execute "docker images" and copy the latest image's <ID>
+- Execute "docker run --hostname <HOSTNAME> -it <ID> /bin/bash"
+# L'hostname deve essere uguale a quello usato durante la configurazione del docker
+- Start slapd, smbd and nslcd by executing the "service *srv* start" command. Be careful to change *srv* with the service that you have to start.
