@@ -1,3 +1,5 @@
+# Da utilizzare cu container Docker!
+
 # Percorso di output del log
 LOG_FILE="/var/log/clamscan.log"
 # Percorso della cartella di quarantena
